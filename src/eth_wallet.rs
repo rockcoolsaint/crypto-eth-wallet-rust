@@ -1,4 +1,5 @@
 use secp256k1::{rand::{rngs, SeedableRng}, PublicKey, SecretKey};
+use serde::{Deserialize, Serialize};
 use web3::{signing::keccak256, types::Address};
 
 pub fn generate_keypair() -> (SecretKey, PublicKey) {
@@ -14,4 +15,22 @@ pub fn public_key_address(public_key: &PublicKey) -> Address {
   let hash = keccak256(&public_key[1..]);
   
   Address::from_slice(&hash[12..])
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Wallet {
+  pub secret_key: String,
+  pub public_key: String,
+  pub public_address: String
+}
+
+impl Wallet {
+  pub fn new(secret_key: &SecretKey, public_key: &PublicKey) -> Self {
+    let addr: Address = public_key_address(&public_key);
+    Wallet {
+      secret_key: hex::encode(secret_key.as_ref()),
+      public_key: public_key.to_string(),
+      public_address: format!("{:?}", addr)
+    }
+  }
 }
