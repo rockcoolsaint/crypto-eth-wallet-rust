@@ -1,4 +1,4 @@
-use std::{fs::OpenOptions, io::BufWriter};
+use std::{fs::OpenOptions, io::{BufReader, BufWriter}};
 
 use anyhow::Result;
 use secp256k1::{rand::{rngs, SeedableRng}, PublicKey, SecretKey};
@@ -46,5 +46,13 @@ impl Wallet {
 
     serde_json::to_writer_pretty(buf_writer, self)?;
     Ok(())
+  }
+
+  pub fn from_file(file_path: &str) -> Result<Wallet> {
+    let file = OpenOptions::new().read(true).open(file_path)?;
+    let buf_reader = BufReader::new(file);
+
+    let wallet: Wallet = serde_json::from_reader(buf_reader)?;
+    Ok(wallet)
   }
 }
