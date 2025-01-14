@@ -1,8 +1,12 @@
+use std::env;
+
 use anyhow::Result;
 
 mod eth_wallet;
 
-fn main() -> Result<()>{
+#[tokio::main]
+async fn main() -> Result<()>{
+    dotenv::dotenv().ok();
     let (secret_key, pub_key) = eth_wallet::generate_keypair();
 
     println!("secret key: {}", hex::encode(&secret_key.as_ref()));
@@ -19,6 +23,12 @@ fn main() -> Result<()>{
 
     let loaded_wallet = eth_wallet::Wallet::from_file(wallet_file_path)?;
     println!("loaded_Wallet: {:?}", loaded_wallet);
+
+    let endpoint = env::var("LINEA_URL")?;
+    let web3_con = eth_wallet::establish_web3_connection(&endpoint).await?;
+
+    let block_number = web3_con.eth().block_number().await?;
+    println!("block number: {}", &block_number);
 
     Ok(())
 }

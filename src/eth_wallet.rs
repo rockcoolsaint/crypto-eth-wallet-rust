@@ -3,7 +3,7 @@ use std::{fs::OpenOptions, io::{BufReader, BufWriter}, str::FromStr};
 use anyhow::Result;
 use secp256k1::{rand::{rngs, SeedableRng}, PublicKey, SecretKey};
 use serde::{Deserialize, Serialize};
-use web3::{signing::keccak256, types::Address};
+use web3::{signing::keccak256, transports::{self, Http}, types::Address, Web3};
 
 pub fn generate_keypair() -> (SecretKey, PublicKey) {
   let secp = secp256k1::Secp256k1::new();
@@ -66,4 +66,10 @@ impl Wallet {
     let pub_key = PublicKey::from_str(&self.secret_key)?;
     Ok(pub_key)
   }
+}
+
+pub async fn establish_web3_connection(url: &str) -> Result<Web3<Http>> {
+  // let transport = web3::transports::WebSocket::new(url).await?; //In case we are using a websocket api
+  let transport = Http::new(url)?;
+  Ok(Web3::new(transport))
 }
