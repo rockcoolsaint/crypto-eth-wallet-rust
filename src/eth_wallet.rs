@@ -7,7 +7,8 @@ use web3::{signing::keccak256, types::Address};
 
 pub fn generate_keypair() -> (SecretKey, PublicKey) {
   let secp = secp256k1::Secp256k1::new();
-  let mut rng = rngs::StdRng::seed_from_u64(111);
+  // let mut rng = rngs::StdRng::seed_from_u64(111);
+  let mut rng = rngs::OsRng;
   secp.generate_keypair(&mut rng)
 }
 
