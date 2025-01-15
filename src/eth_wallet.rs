@@ -3,7 +3,9 @@ use std::{fs::OpenOptions, io::{BufReader, BufWriter}, str::FromStr};
 use anyhow::Result;
 use secp256k1::{rand::{rngs, SeedableRng}, PublicKey, SecretKey};
 use serde::{Deserialize, Serialize};
-use web3::{signing::keccak256, transports::{self, Http}, types::Address, Web3};
+use web3::{signing::keccak256, transports::{self, Http}, types::{Address, U256}, Web3};
+
+use crate::utils;
 
 pub fn generate_keypair() -> (SecretKey, PublicKey) {
   let secp = secp256k1::Secp256k1::new();
@@ -65,6 +67,21 @@ impl Wallet {
   pub fn get_public_key(&self) -> Result<PublicKey> {
     let pub_key = PublicKey::from_str(&self.secret_key)?;
     Ok(pub_key)
+  }
+
+  pub async fn get_balance(&self, web3_connection: &Web3<Http>) -> Result<U256> {
+    let wallet_address = Address::from_str(&self.public_address)?;
+    let balance = web3_connection.eth().balance(wallet_address, None).await?;
+
+    Ok(balance)
+  }
+
+  pub async fn get_balance_in_eth(
+    &self,
+    web3_connection: &Web3<Http>
+  ) -> Result<f64> {
+    let wei_balance = self.get_balance(web3_connection).await?;
+    Ok(utils::wei_to_eth(wei_balance))
   }
 }
 
