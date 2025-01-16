@@ -1,6 +1,8 @@
 use std::env;
+// use std::str::FromStr;
 
 use anyhow::Result;
+use web3::types::Address;
 
 mod eth_wallet;
 mod utils;
@@ -33,6 +35,14 @@ async fn main() -> Result<()>{
 
     let balance = loaded_wallet.get_balance_in_eth(&web3_con).await?;
     println!("Wallet balance: {} eth", &balance);
+
+    let address_str = "0xBF4643138f6F060eaD73C2Cea529dD9257d2c3E3";
+    let address_bytes = hex::decode(&address_str[2..]).expect("Invalid hex address"); // Remove "0x" prefix
+    // let transaction = eth_wallet::create_eth_transaction(Address::from_slice(b"0xBF4643138f6F060eaD73C2Cea529dD9257d2c3E3"), 0.01);
+    let transaction = eth_wallet::create_eth_transaction(Address::from_slice(&address_bytes), 0.01);
+    let transact_hash = eth_wallet::sign_and_send(&web3_con, transaction, &loaded_wallet.get_secret_key()?).await?;
+
+    println!("transaction hash: {:?}", transact_hash);
 
     Ok(())
 }
