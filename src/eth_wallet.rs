@@ -3,7 +3,7 @@ use std::{fs::OpenOptions, io::{BufReader, BufWriter}, str::FromStr};
 use anyhow::Result;
 use secp256k1::{rand::{rngs, SeedableRng}, PublicKey, SecretKey};
 use serde::{Deserialize, Serialize};
-use web3::{signing::keccak256, transports::{self, Http}, types::{Address, TransactionParameters, U256}, Web3};
+use web3::{signing::keccak256, transports::{self, Http}, types::{Address, TransactionParameters, H256, U256}, Web3};
 
 use crate::utils;
 
@@ -98,4 +98,21 @@ TransactionParameters {
     value: utils::eth_to_wei(eth_value),
     ..Default::default()
   }
+}
+
+pub async fn sign_and_send(
+  web3: &Web3<Http>,
+  transaction: TransactionParameters,
+  secret_key: &SecretKey,
+) -> Result<H256> {
+  let signed = web3
+      .accounts()
+      .sign_transaction(transaction, secret_key)
+      .await?;
+
+  let transation_result = web3
+      .eth()
+      .send_raw_transaction(signed.raw_transaction)
+      .await?;
+  Ok(transation_result)
 }
