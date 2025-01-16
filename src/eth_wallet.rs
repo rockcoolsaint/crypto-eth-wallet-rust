@@ -3,7 +3,7 @@ use std::{fs::OpenOptions, io::{BufReader, BufWriter}, str::FromStr};
 use anyhow::Result;
 use secp256k1::{rand::{rngs, SeedableRng}, PublicKey, SecretKey};
 use serde::{Deserialize, Serialize};
-use web3::{signing::keccak256, transports::{self, Http}, types::{Address, U256}, Web3};
+use web3::{signing::keccak256, transports::{self, Http}, types::{Address, TransactionParameters, U256}, Web3};
 
 use crate::utils;
 
@@ -89,4 +89,13 @@ pub async fn establish_web3_connection(url: &str) -> Result<Web3<Http>> {
   // let transport = web3::transports::WebSocket::new(url).await?; //In case we are using a websocket api
   let transport = Http::new(url)?;
   Ok(Web3::new(transport))
+}
+
+pub fn create_eth_transaction(to: Address, eth_value: f64) ->
+TransactionParameters {
+  TransactionParameters {
+    to: Some(to),
+    value: utils::eth_to_wei(eth_value),
+    ..Default::default()
+  }
 }
