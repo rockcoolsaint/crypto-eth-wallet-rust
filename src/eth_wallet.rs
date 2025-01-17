@@ -3,7 +3,7 @@ use std::{fs::OpenOptions, io::{BufReader, BufWriter}, str::FromStr};
 use anyhow::Result;
 use secp256k1::{rand::{rngs, SeedableRng}, PublicKey, SecretKey};
 use serde::{Deserialize, Serialize};
-use web3::{signing::keccak256, transports::{self, Http}, types::{Address, TransactionParameters, H256, U256}, Web3};
+use web3::{signing::keccak256, transports::{self, Http, WebSocket}, types::{Address, TransactionParameters, H256, U256}, Web3};
 
 use crate::utils;
 
@@ -69,7 +69,7 @@ impl Wallet {
     Ok(pub_key)
   }
 
-  pub async fn get_balance(&self, web3_connection: &Web3<Http>) -> Result<U256> {
+  pub async fn get_balance(&self, web3_connection: &Web3<WebSocket>) -> Result<U256> {
     let wallet_address = Address::from_str(&self.public_address)?;
     let balance = web3_connection.eth().balance(wallet_address, None).await?;
 
@@ -78,16 +78,16 @@ impl Wallet {
 
   pub async fn get_balance_in_eth(
     &self,
-    web3_connection: &Web3<Http>
+    web3_connection: &Web3<WebSocket>
   ) -> Result<f64> {
     let wei_balance = self.get_balance(web3_connection).await?;
     Ok(utils::wei_to_eth(wei_balance))
   }
 }
 
-pub async fn establish_web3_connection(url: &str) -> Result<Web3<Http>> {
+pub async fn establish_web3_connection(url: &str) -> Result<Web3<WebSocket>> {
   // let transport = web3::transports::WebSocket::new(url).await?; //In case we are using a websocket api
-  let transport = Http::new(url)?;
+  let transport = WebSocket::new(url).await?;
   Ok(Web3::new(transport))
 }
 
@@ -101,7 +101,7 @@ TransactionParameters {
 }
 
 pub async fn sign_and_send(
-  web3: &Web3<Http>,
+  web3: &Web3<WebSocket>,
   transaction: TransactionParameters,
   secret_key: &SecretKey,
 ) -> Result<H256> {

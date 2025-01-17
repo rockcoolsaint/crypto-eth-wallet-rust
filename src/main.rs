@@ -27,7 +27,7 @@ async fn main() -> Result<()>{
     let loaded_wallet = eth_wallet::Wallet::from_file(wallet_file_path)?;
     println!("loaded_Wallet: {:?}", loaded_wallet);
 
-    let endpoint = env::var("SEPOLIA_URL")?;
+    let endpoint = env::var("SEPOLIA_WS")?;
     let web3_con = eth_wallet::establish_web3_connection(&endpoint).await?;
 
     let block_number = web3_con.eth().block_number().await?;
